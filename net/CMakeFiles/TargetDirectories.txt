@@ -1,0 +1,3 @@
+/home/creep/simple-p2p-chat/net/CMakeFiles/edit_cache.dir
+/home/creep/simple-p2p-chat/net/CMakeFiles/rebuild_cache.dir
+/home/creep/simple-p2p-chat/net/CMakeFiles/net.dir

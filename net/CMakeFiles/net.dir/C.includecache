@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/creep/simple-p2p-chat/net/net.c
+net.h
+/home/creep/simple-p2p-chat/net/net.h
+
+/home/creep/simple-p2p-chat/net/net.h
+sys/socket.h
+-
+netinet/in.h
+-
+sys/types.h
+-
+arpa/inet.h
+-
+sys/stat.h
+-
+stdlib.h
+-
+string.h
+-
+unistd.h
+-
+stdint.h
+-
+stdio.h
+-
+fcntl.h
+-
+poll.h
+-
+
