@@ -14,6 +14,8 @@
 #include <time.h>
 #include <fcntl.h>
 
+#include "message.h"
+
 typedef enum
 {
     SUCCESS,
@@ -30,7 +32,7 @@ rcode_t net_bind_socket(int32_t fd, struct sockaddr * addr);
 rcode_t net_listen_fd(int32_t fd, uint16_t backlog);
 rcode_t net_accept_connection(int32_t fd, int32_t * fd_out);
 rcode_t net_connect_socket(int32_t fd, struct sockaddr * addr);
-rcode_t net_write_data(int32_t fd, void * input, uint32_t input_len);
-rcode_t net_read_data(int32_t fd, void * output, uint32_t output_len);
+rcode_t net_send_message(int32_t fd, message_t * message);
+rcode_t net_recv_message(int32_t fd, message_t ** message);
 
 #endif /* NET_H */
