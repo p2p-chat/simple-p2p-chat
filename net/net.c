@@ -137,7 +137,7 @@ rcode_t net_connect_socket(int32_t fd, struct sockaddr * addr)
     return SUCCESS;
 }
 
-rcode_t net_write_data(int32_t fd, void * input, uint32_t input_len)
+static rcode_t net_write_data(int32_t fd, void * input, uint32_t input_len)
 {
     if (!fd) return FAILED;
     if (!input) return FAILED;
@@ -150,7 +150,7 @@ rcode_t net_write_data(int32_t fd, void * input, uint32_t input_len)
     return SUCCESS;
 }
 
-rcode_t net_read_data(int32_t fd, void * output, uint32_t output_len)
+static rcode_t net_read_data(int32_t fd, void * output, uint32_t output_len)
 {
     if (!fd) return FAILED;
     if (!output) return FAILED;
@@ -159,6 +159,55 @@ rcode_t net_read_data(int32_t fd, void * output, uint32_t output_len)
     int32_t rc;
     rc = read(fd, output, output_len);
     if (!rc) return FAILED;
+
+    return SUCCESS;
+}
+
+rcode_t net_send_message(int32_t fd, message_t * message)
+{
+    if (!fd) return FAILED;
+    if (!message) return FAILED;
+
+    int32_t rc;
+    header_t * header = &message->header;
+    void * payload = (void *) message->payload;
+
+    rc = net_write_data(fd, (void *) header, sizeof(*header));
+    if (rc) return FAILED;
+
+    if (!header->length) return SUCCESS;
+
+    rc = net_write_data(fd, payload, header->length);
+    if (rc) return FAILED;
+
+    return SUCCESS;
+}
+
+rcode_t net_recv_message(int32_t fd, message_t ** message)
+{
+    if (!fd) return FAILED;
+    if (!message) return FAILED;
+
+    int32_t rc;
+    message_t * message_in;
+    message_in = (message_t *) malloc(sizeof(header_t));
+    if (!message_in) return FAILED;
+
+    memset(message_in, 0, sizeof(*message_in));
+    header_t * header = &message_in->header;
+
+    rc = net_read_data(fd, (void *) header, sizeof(*header));
+    if (rc) return FAILED;
+
+    if (!header->length) return SUCCESS;
+
+    message_in = realloc(message_in, sizeof(header_t) + header->length);
+    void * payload = (void *) message_in->payload;
+
+    rc = net_read_data(fd, payload, header->length);
+    if (rc) return FAILED;
+
+    *message = message_in;
 
     return SUCCESS;
 }
