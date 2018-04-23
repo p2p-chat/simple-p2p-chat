@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     fds2[0].events = POLLIN;
     fds2[1].fd = STDIN_FILENO;
     fds2[1].events = POLLIN;
-
+    char name[128]="хз кто";
     while (1)
     {
         rc = poll(fds2, 2, 1);
@@ -74,9 +74,12 @@ int main(int argc, char *argv[])
                     continue;
                 }
                 if (message->header.type == MESSAGE_TYPE_TEXT)
-                    printf("%s\n", message->payload);
+                    printf("[%s]:%s\n", message->payload);
                 if (message->header.type == MESSAGE_TYPE_HELLO)
+                {
                     printf("you talk with %s\n", message->payload);
+                    sprintf(name, "%s", message->payload);
+                }
                 free(message);
             }
             if (fds2[1].revents & POLLIN)
