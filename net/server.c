@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
                     continue;
                 }
                 if (message->header.type == MESSAGE_TYPE_TEXT)
-                    printf("[%s]:%s\n", message->payload);
+                    printf("[%s]:%s\n", name, message->payload);
                 if (message->header.type == MESSAGE_TYPE_HELLO)
                 {
                     printf("you talk with %s\n", message->payload);
@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
             if (fds2[1].revents & POLLIN)
             {
                 char buf[1024] = "";
+                scanf("%s", buf);
+
                 message_t * message = malloc(sizeof(header_t)+strlen(buf));
                 memcpy(message->payload, buf, strlen(buf));
                 message->header.length = strlen(buf);
