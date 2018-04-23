@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                 if (message->header.type == MESSAGE_TYPE_HELLO)
                 {
                     printf("you talk with %s\n", message->payload);
-                    sprintf(name, "%s", message->payload);
+                    sprintf(name, "%s\n", message->payload);
                 }
                 free(message);
             }

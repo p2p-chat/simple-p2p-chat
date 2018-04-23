@@ -37,7 +37,7 @@ int cmd_handle(message_t *message)
 		version();
 		return 0;
 	}
-	if (!strcmp("/name", (char *)message->payload))
+	if (strstr("/name", (char *)message->payload))
 	{
 		name(message);
 		return 0;
