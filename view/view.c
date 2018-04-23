@@ -46,13 +46,13 @@ int check_for_command(char *cmd)
 }
 
 // для тестирования
-void main()
-{
-	while(1)
-	{
-		char cmd[120];
-		scanf("%s", cmd);
-		if (check_for_command(cmd))
-			continue;
-	}
-}
+// void main()
+// {
+// 	while(1)
+// 	{
+// 		char cmd[120];
+// 		scanf("%s", cmd);
+// 		if (check_for_command(cmd))
+// 			continue;
+// 	}
+// }

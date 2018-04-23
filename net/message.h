@@ -9,7 +9,8 @@ typedef enum
 
 typedef enum
 {
-    MESSAGE_TYPE_TEXT
+    MESSAGE_TYPE_TEXT,
+    MESSAGE_TYPE_HELLO
 } message_type_t;
 
 typedef enum
