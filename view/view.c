@@ -20,7 +20,9 @@ void cmd_help()
 void name(message_t *message)
 {
 	message->header.type = MESSAGE_TYPE_HELLO;
-	memmove(message->payload, message->payload + 5, strlen((char *)message->payload) - 5);
+	for (int i = 0; i + 5 < strlen((char *)message->payload); i++)
+		message->payload[i] = message->payload[i+5];
+	// memmove(message->payload, message->payload + 5, strlen((char *)message->payload) - 5);
 }
 
 int cmd_handle(message_t *message)
