@@ -13,19 +13,6 @@ rcode_t net_open_tcp_socket(int32_t * fd_out)
     return SUCCESS;
 }
 
-rcode_t net_open_udp_socket(int32_t * fd_out)
-{
-    if (!fd_out) return FAILED;
-
-    int32_t fd_in;
-    fd_in = socket(AF_INET, SOCK_DGRAM, 0);
-    if (!fd_in) return FAILED;
-
-    *fd_out = fd_in;
-
-    return SUCCESS;
-}
-
 rcode_t net_close_socket(int32_t fd)
 {
     if (!fd) return FAILED;
@@ -71,21 +58,6 @@ rcode_t net_set_socket_nonblock(int32_t fd)
     int32_t rc;
     rc = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (0 != rc) return FAILED;
-
-    return SUCCESS;
-}
-
-rcode_t net_fill_un_addr(struct sockaddr * addr_out, char * path)
-{
-    if (!addr_out) return FAILED;
-
-    struct sockaddr_un * addr_in = (struct sockaddr_un *) addr_out;
-    memset(addr_in, 0, sizeof(*addr_in));
-
-    addr_in->sun_family = AF_UNIX;
-    sprintf(addr_in->sun_path, "%s", path);
-
-    memcpy(addr_out, &addr_in, sizeof(addr_in));
 
     return SUCCESS;
 }
