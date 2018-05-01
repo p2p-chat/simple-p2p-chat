@@ -287,6 +287,7 @@ void console_init()
     nfds = NUM_FDS;
 
     status = CONSOLE_RUNNING;
+    connection = DISCONNECTED;
 }
 
 void console_loop(void * cookie)
