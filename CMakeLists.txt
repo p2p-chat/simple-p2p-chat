@@ -1,4 +1,16 @@
 cmake_minimum_required (VERSION 3.5)
 
-add_subdirectory(view)
 add_subdirectory(net)
+add_subdirectory(console)
+
+include_directories(console)
+
+set(SRC
+	client.c)
+
+set(LIBS
+	console)
+
+add_executable(client ${SRC})
+
+target_link_libraries(client ${LIBS})
