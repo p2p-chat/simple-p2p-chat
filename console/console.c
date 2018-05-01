@@ -197,8 +197,36 @@ static void incoming_message_handle(message_t * message)
     printf("%s\n", message->payload);
 }
 
+/* askii only */
+static void console_welcome(char * target)
+{
+    if (!target) return;
+    srand(getpid());
+    char * range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ !@#$%^&*()_+-=<>,.";
+    char str[strlen(target)];
+    memset(str, 0 , sizeof(str));
+
+    putchar('\t');
+    fflush(stdout);
+    for (int i = 0; i < strlen(target); i++)
+    {
+        do
+        {
+            str[i] = range[rand()%strlen(range)];
+            putchar(str[i]);
+            fflush(stdout);
+            usleep(1000);
+            if (target[i] != str[i]) putchar('\b');
+            else break;
+        } while (1);
+    }
+    printf("\n\n> ");
+    fflush(stdout);
+}
+
 void console_init()
 {
+    console_welcome(NAME);
     fds = (struct pollfd *) calloc(NUM_FDS, sizeof(struct pollfd));
     if (!fds) return;
 
@@ -280,6 +308,8 @@ void console_loop(void * cookie)
                 console_cmd_handle(buf);
             else
                 console_msg_handle(buf);
+            printf("> ");
+            fflush(stdout);
         }
         if (fds[LISTEN_FD].revents & POLLIN)
         {

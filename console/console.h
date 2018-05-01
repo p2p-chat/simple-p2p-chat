@@ -9,6 +9,7 @@
 
 #include "../net/net.h"
 
+#define NAME           "Crypto P2P Chat"
 #define VERSION        "0.0.0.3"
 #define POLL_TIMEOUT    1000
 #define INPUT_MAX_LEN   1024
