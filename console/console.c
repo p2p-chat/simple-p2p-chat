@@ -341,6 +341,8 @@ void console_loop(void * cookie)
                     continue;
                 }
                 incoming_message_handle(message);
+                printf("> ");
+                fflush(stdout);
                 if (message) free(message);
             }
         }
