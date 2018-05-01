@@ -220,6 +220,7 @@ static void console_welcome(char * target)
             else break;
         } while (1);
     }
+    printf("\n\n> ");
     fflush(stdout);
 }
 
@@ -307,6 +308,8 @@ void console_loop(void * cookie)
                 console_cmd_handle(buf);
             else
                 console_msg_handle(buf);
+            printf("> ");
+            fflush(stdout);
         }
         if (fds[LISTEN_FD].revents & POLLIN)
         {
