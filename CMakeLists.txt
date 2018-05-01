@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.5)
 
 add_subdirectory(net)
 add_subdirectory(console)
+add_subdirectory(crypto)
 
 include_directories(console)
 
