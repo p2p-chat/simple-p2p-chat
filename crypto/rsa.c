@@ -147,6 +147,8 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv, char *PRIME_
     priv->exponent = d;
   }
 
+  fclose(primes_list);
+
 }
 
 long long *rsa_encrypt(char *message, const unsigned long message_size, 
