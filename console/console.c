@@ -134,7 +134,7 @@ static void unknow_cmd(char * cmd)
 
 static void help_cmd(char * cmd)
 {
-    printf("Avialable commands:\n\tconnect <host>\n\tdisconnect\n\tstart\n\tstop\n\tstatus\n\tversion\n\texit\n");
+    printf("Avialable commands:\n\tconnect <host>\n\tstatus\n\tversion\n\thelp\n\texit\n");
 }
 
 static void console_cmd_handle(char * cmd)
@@ -287,6 +287,7 @@ void console_init()
     nfds = NUM_FDS;
 
     status = CONSOLE_RUNNING;
+    connection = DISCONNECTED;
 }
 
 void console_loop(void * cookie)
@@ -341,6 +342,8 @@ void console_loop(void * cookie)
                     continue;
                 }
                 incoming_message_handle(message);
+                printf("> ");
+                fflush(stdout);
                 if (message) free(message);
             }
         }

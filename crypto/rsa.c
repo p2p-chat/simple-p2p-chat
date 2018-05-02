@@ -70,6 +70,9 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv, char *PRIME_
     exit(1);
   }
 
+  //init rand generator
+  srand(time(NULL));
+
   // count number of primes in the list
   long long prime_count = 0;
   do{
@@ -88,8 +91,6 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv, char *PRIME_
   priv->modulus = 0;
   while ((priv->modulus > LIMIT) || priv->modulus == 0)
   {
-    if (priv->modulus > LIMIT)
-        usleep(800000); // time for new rand numbers
     long long p = 0;
     long long q = 0;
 
@@ -99,7 +100,6 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv, char *PRIME_
     long long max = 0;
     long long phi_max = 0;
 
-    srand(time(NULL));
     do{
       // a and b are the positions of p and q in the list
       int a =  (double)rand() * (prime_count+1) / (RAND_MAX+1.0);
@@ -146,6 +146,8 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv, char *PRIME_
     priv->modulus = max;
     priv->exponent = d;
   }
+
+  fclose(primes_list);
 
 }
 
