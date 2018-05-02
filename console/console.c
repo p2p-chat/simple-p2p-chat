@@ -134,7 +134,7 @@ static void unknow_cmd(char * cmd)
 
 static void help_cmd(char * cmd)
 {
-    printf("Avialable commands:\n\tconnect <host>\n\tdisconnect\n\tstart\n\tstop\n\tstatus\n\tversion\n\texit\n");
+    printf("Avialable commands:\n\tconnect <host>\n\tstatus\n\tversion\n\thelp\n\texit\n");
 }
 
 static void console_cmd_handle(char * cmd)
