@@ -224,6 +224,7 @@ static void key_send(int fd)
 
     memset(message, 0, sizeof(*message));
     message->header.length = sizeof(rsa_key_t);
+    message->header.type = MESSAGE_TYPE_KEY_EXCHANGE;
     memcpy(message->payload, &my_public_key, sizeof(rsa_key_t));
     int rc = net_send_message(fd, message);
     if (rc != SUCCESS)
