@@ -6,8 +6,8 @@
 
 int main(int argc, char **argv)
 {
-  struct public_key pub[1];
-  struct private_key priv[1];
+  rsa_key_t pub[1];
+  rsa_key_t priv[1];
   rsa_gen_keys(pub, priv);
 
   printf("Private Key:\n Modulus: %lld\n Exponent: %lld\n", (long long)priv->modulus, (long long) priv->exponent);

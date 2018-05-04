@@ -8,9 +8,10 @@
 #include <pthread.h>
 
 #include "../net/net.h"
+#include "../crypto/rsa.h"
 
 #define NAME           "Crypto P2P Chat"
-#define VERSION        "0.0.0.3"
+#define VERSION        "0.0.0.4"
 #define POLL_TIMEOUT    1000
 #define INPUT_MAX_LEN   1024
 #define LISTEN_ADDR     "0.0.0.0"

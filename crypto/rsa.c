@@ -5,23 +5,13 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
-
+#include "rsa.h"
 #define LIMIT 3500000000
 #define PRIME_SOURCE_FILE "primes.txt"
 
 char buffer[1024];
 const int MAX_DIGITS = 50;
 int i,j = 0;
-
-struct public_key{
-  long long modulus;
-  long long exponent;
-};
-
-struct private_key{
-  long long modulus;
-  long long exponent;
-};
 
 // This should totally be in the math library.
 long long gcd(long long a, long long b)
@@ -63,7 +53,7 @@ long long rsa_modExp(unsigned long long b, long long e, long long m)
 
 // Calling this function will generate a public and private key and store them in the pointers
 // it is given. 
-void rsa_gen_keys(struct public_key *pub, struct private_key *priv)
+void rsa_gen_keys(rsa_key_t *pub, rsa_key_t *priv)
 {
   FILE *primes_list;
   if(!(primes_list = fopen(PRIME_SOURCE_FILE, "r"))){
@@ -153,7 +143,7 @@ void rsa_gen_keys(struct public_key *pub, struct private_key *priv)
 }
 
 long long *rsa_encrypt(char *message, const unsigned long message_size, 
-                     const struct public_key *pub)
+                     const rsa_key_t *pub)
 {
   long long *encrypted = malloc(sizeof(long long)*message_size);
   if(encrypted == NULL){
@@ -169,7 +159,7 @@ long long *rsa_encrypt(char *message, const unsigned long message_size,
 
 char *rsa_decrypt(const long long *message, 
                   const unsigned long message_size, 
-                  const struct private_key *priv)
+                  const rsa_key_t *priv)
 {
   if(message_size % sizeof(long long) != 0){
     fprintf(stderr,

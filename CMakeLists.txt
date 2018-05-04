@@ -10,7 +10,8 @@ set(SRC
 	client.c)
 
 set(LIBS
-	console)
+	console
+	crypto)
 
 add_executable(client ${SRC})
 

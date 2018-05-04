@@ -6,6 +6,13 @@ static struct pollfd * fds;
 static console_status_t status;
 static connection_status_t connection;
 
+rsa_key_t my_private_key;
+rsa_key_t my_public_key;
+rsa_key_t peer_public_key;
+
+// #define MESSAGE_COUNT 30
+// static int msg_counter = 0;
+
 static int is_uint8(char * val)
 {
     int oct = atoi(val);
@@ -168,8 +175,11 @@ static void console_msg_handle(char * msg)
         printf("Connection not estabilished\n");
         return;
     }
-
-    message_t * message = (message_t *) malloc(sizeof(header_t) + strlen(msg)+1);
+    printf("src msg: %s\n", msg);
+    long long * encrypted_message = rsa_encrypt(msg, strlen(msg)+1, &peer_public_key);
+    int encrypted_message_len = sizeof(*encrypted_message);
+    printf("encrypted msg: %s\n", encrypted_message);
+    message_t * message = (message_t *) malloc(sizeof(header_t) + encrypted_message_len);
     if (message == NULL)
     {
         printf("Cannot send message\n");
@@ -177,8 +187,8 @@ static void console_msg_handle(char * msg)
     }
 
     memset(message, 0, sizeof(*message));
-    message->header.length = strlen(msg)+1;
-    memcpy(message->payload, msg, strlen(msg)+1);
+    message->header.length = encrypted_message_len;
+    memcpy(message->payload, encrypted_message, encrypted_message_len);
     int rc;
     for (int i = NUM_FDS; i < nfds; i++)
     {
@@ -189,12 +199,62 @@ static void console_msg_handle(char * msg)
             printf("Error sending message\n");
         }
     }
+    free(encrypted_message);
     free(message);
+}
+
+static void key_exchange(message_t * message)
+{
+    if (!message) return;
+   
+   rsa_key_t * key = (rsa_key_t *) message->payload;
+   memcpy(&peer_public_key, key, sizeof(*key));
+}
+
+static void key_send(int fd)
+{
+    rsa_gen_keys(&my_public_key, &my_private_key);
+
+    message_t * message = (message_t *) malloc(sizeof(header_t) + sizeof(rsa_key_t));
+    if (message == NULL)
+    {
+        printf("Cannot send message\n");
+        return;
+    }
+
+    memset(message, 0, sizeof(*message));
+    message->header.length = sizeof(rsa_key_t);
+    memcpy(message->payload, &my_public_key, sizeof(rsa_key_t));
+    int rc = net_send_message(fd, message);
+    if (rc != SUCCESS)
+    {
+        printf("Error key exchanging\n");
+    }
+    free(message);
+}
+
+static void decrypt_messsage(message_t * message)
+{
+    if (!message) return;
+    char * decrypted_message = rsa_decrypt(message->payload, message->header.length, &my_private_key);
+    if (!decrypted_message) return;
+    printf("%s\n", decrypted_message);
 }
 
 static void incoming_message_handle(message_t * message)
 {
-    printf("%s\n", message->payload);
+    if (!message) return;
+    
+    if (message->header.type == MESSAGE_TYPE_KEY_EXCHANGE)
+    {
+        printf("recv pub key\n");
+        key_exchange(message);
+    }
+    if (message->header.type == MESSAGE_TYPE_TEXT)
+    {
+        printf("recv enc msg: %s\n",message->payload);
+        decrypt_messsage(message);
+    }
 }
 
 /* askii only */
@@ -298,6 +358,7 @@ void console_loop(void * cookie)
 
     while (CONSOLE_RUNNING == status)
     {
+ //MESSAGE_TYPE_KEY_EXCHANGE
         rc = poll(fds, nfds, POLL_TIMEOUT);
         if (rc == 0) continue;
         if (fds[STDIN_FD].revents & POLLIN)
@@ -328,6 +389,7 @@ void console_loop(void * cookie)
                 close(listen_fd);
                 return;
             }
+            key_send(new_fd);
         }
         for (i = NUM_FDS; i < nfds; i++)
         {
