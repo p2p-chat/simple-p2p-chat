@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
   struct public_key pub[1];
   struct private_key priv[1];
-  rsa_gen_keys(pub, priv, PRIME_SOURCE_FILE);
+  rsa_gen_keys(pub, priv);
 
   printf("Private Key:\n Modulus: %lld\n Exponent: %lld\n", (long long)priv->modulus, (long long) priv->exponent);
   printf("Public Key:\n Modulus: %lld\n Exponent: %lld\n", (long long)pub->modulus, (long long) pub->exponent);
