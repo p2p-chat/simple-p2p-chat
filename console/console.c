@@ -213,6 +213,7 @@ static void key_exchange(message_t * message)
    
    rsa_key_t * key = (rsa_key_t *) message->payload;
    memcpy(&peer_public_key, key, sizeof(*key));
+   printf("recvied key %lld %lld\n", peer_public_key.modulus, peer_public_key.exponent);
 }
 
 static void key_send(int fd)
@@ -235,7 +236,7 @@ static void key_send(int fd)
     {
         printf("Error key exchanging\n");
     }
-    free(message);
+    printf("sended key %lld %lld\n", my_public_key.modulus, my_public_key.exponent);
 }
 
 static void decrypt_messsage(message_t * message)
@@ -263,7 +264,6 @@ static void incoming_message_handle(message_t * message)
             printf("%lld", (long long)message->payload[i]);
         }
     }
-    free(message);
 }
 
 /* askii only */
