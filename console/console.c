@@ -102,6 +102,7 @@ static void connect_cmd(char * cmd)
     rc = console_add_connection(new_fd);
     if (SUCCESS != rc)
     {
+        printf("add connection failed\n");
         close(listen_fd);
         return;
     }
@@ -178,7 +179,10 @@ static void console_msg_handle(char * msg)
     printf("src msg: %s\n", msg);
     long long * encrypted_message = rsa_encrypt(msg, strlen(msg)+1, &peer_public_key);
     int encrypted_message_len = sizeof(*encrypted_message);
-    printf("encrypted msg: %s\n", encrypted_message);
+    printf("encrypted msg: ");
+    for (int i = 0; i < encrypted_message_len; i++)
+        printf("%lld", encrypted_message[i]);
+    printf("\n");
     message_t * message = (message_t *) malloc(sizeof(header_t) + encrypted_message_len);
     if (message == NULL)
     {
@@ -237,7 +241,7 @@ static void key_send(int fd)
 static void decrypt_messsage(message_t * message)
 {
     if (!message) return;
-    char * decrypted_message = rsa_decrypt(message->payload, message->header.length, &my_private_key);
+    char * decrypted_message = rsa_decrypt((long long *) message->payload, message->header.length, &my_private_key);
     if (!decrypted_message) return;
     printf("%s\n", decrypted_message);
 }
@@ -253,9 +257,13 @@ static void incoming_message_handle(message_t * message)
     }
     if (message->header.type == MESSAGE_TYPE_TEXT)
     {
-        printf("recv enc msg: %s\n",message->payload);
+        // printf("recv enc msg: %s\n",message->payload);
         decrypt_messsage(message);
+        for(int i = 0; i < message->header.length; i++){
+            printf("%lld", (long long)message->payload[i]);
+        }
     }
+    free(message);
 }
 
 /* askii only */
