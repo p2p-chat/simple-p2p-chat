@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include "rsa.h"
 #define LIMIT 3500000000
-#define PRIME_SOURCE_FILE "primes.txt"
+#define PRIME_SOURCE_FILE "crypto/primes.txt"
 
 char buffer[1024];
 const int MAX_DIGITS = 50;
