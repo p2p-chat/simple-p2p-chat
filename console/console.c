@@ -260,9 +260,11 @@ static void incoming_message_handle(message_t * message)
     {
         // printf("recv enc msg: %s\n",message->payload);
         decrypt_messsage(message);
+        long long * ptr = (long long *) message->payload;
         for(int i = 0; i < message->header.length; i++){
-            printf("%lld", (long long)message->payload[i]);
+            printf("%lld", ptr[i]);
         }
+        printf("\n");
     }
 }
 
