@@ -50,6 +50,8 @@ static inline int console_add_connection(int fd)
     fds[nfds-1].fd = fd;
     fds[nfds-1].events = POLLIN;
 
+    if (connection == DISCONNECTED) connection = CONNECTED;
+
     return SUCCESS;
 }
 
@@ -99,7 +101,6 @@ static void connect_cmd(char * cmd)
         return;
     }
 
-    if (connection == DISCONNECTED) connection = CONNECTED;
     printf("Connection to %s:%d estabilished\n", host, LISTEN_PORT);
 }
 
