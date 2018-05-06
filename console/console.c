@@ -228,6 +228,15 @@ static void console_welcome(char * target)
     fflush(stdout);
 }
 
+static void signal_handler(int signo)
+{
+    if (signo == SIGTERM)
+    {
+        printf("/exit\n");
+        exit_cmd(NULL);
+    }
+}
+
 void console_init()
 {
     console_welcome(NAME);
@@ -281,6 +290,19 @@ void console_init()
         free(fds);
         return;
     }
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler =  signal_handler;
+    sa.sa_flags = SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+    sigaddset(&sa.sa_mask, SIGTERM);
+    sigaction(SIGTERM, &sa, NULL );
+
+    sigset_t sset;
+    sigemptyset(&sset);
+    sigaddset(&sset, SIGINT);
+    sigprocmask(SIG_BLOCK, &sset, 0);
 
     fds[STDIN_FD].fd = 0;
     fds[STDIN_FD].events = POLLIN;
