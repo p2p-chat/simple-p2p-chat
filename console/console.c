@@ -57,6 +57,8 @@ static inline int console_add_connection(int fd)
     fds[nfds-1].fd = fd;
     fds[nfds-1].events = POLLIN;
 
+    if (connection == DISCONNECTED) connection = CONNECTED;
+
     return SUCCESS;
 }
 
@@ -106,7 +108,6 @@ static void connect_cmd(char * cmd)
         return;
     }
 
-    if (connection == DISCONNECTED) connection = CONNECTED;
     printf("Connection to %s:%d estabilished\n", host, LISTEN_PORT);
 }
 
@@ -116,7 +117,8 @@ static void exit_cmd(char * cmd)
 
     status = CONSOLE_STOPPING;
     close(listen_fd);
-    for (int i = NUM_FDS; i < nfds; i++)
+    int i;
+    for (i = NUM_FDS; i < nfds; i++)
     {
         if (fds[i].fd) close(fds[i].fd);
     }
@@ -190,7 +192,8 @@ static void console_msg_handle(char * msg)
     message->header.length = encrypted_message_len;
     memcpy(message->payload, encrypted_message, encrypted_message_len);
     int rc;
-    for (int i = NUM_FDS; i < nfds; i++)
+    int i;
+    for (i = NUM_FDS; i < nfds; i++)
     {
         if (!fds[i].fd) continue;
         rc = net_send_message(fds[i].fd, message);
@@ -268,7 +271,8 @@ static void console_welcome(char * target)
 
     putchar('\t');
     fflush(stdout);
-    for (int i = 0; i < strlen(target); i++)
+    int i;
+    for (i = 0; i < strlen(target); i++)
     {
         do
         {
