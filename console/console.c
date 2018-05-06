@@ -1,10 +1,8 @@
 #include "console.h"
 
-static int nfds;
-static int listen_fd;
-static struct pollfd * fds;
+static pthread_t net_tid;
+static struct pollfd stdin_pollfd;
 static console_status_t status;
-static connection_status_t connection;
 
 static int is_uint8(char * val)
 {
@@ -36,25 +34,6 @@ static int is_addr(char * host)
     return 1;
 }
 
-static inline int console_add_connection(int fd)
-{
-    void * realloc_protect = (void *) fds;
-
-    fds = (struct pollfd *) realloc((void *) fds, ++nfds * sizeof(struct pollfd));
-    if (!fds)
-    {
-        free(realloc_protect);
-        fds = NULL;
-        return FAILED;
-    }
-    fds[nfds-1].fd = fd;
-    fds[nfds-1].events = POLLIN;
-
-    if (connection == DISCONNECTED) connection = CONNECTED;
-
-    return SUCCESS;
-}
-
 static void connect_cmd(char * cmd)
 {
     strtok(cmd, " ");
@@ -73,31 +52,10 @@ static void connect_cmd(char * cmd)
     }
     free(host_verify);
 
-    int new_fd;
-    int rc = net_open_tcp_socket(&new_fd);
-    if (0 != rc)
-    {
-        printf("Connect failed 1\n");
-        return;
-    }
-    struct sockaddr addr;
-    rc = net_fill_in_addr(&addr, host, LISTEN_PORT);
-    if (0 != rc)
-    {
-        printf("Connect failed 2\n");
-        return;
-    }
-
-    rc = net_connect_socket(new_fd, &addr);
-    if (0 != rc)
-    {
-        printf("Connect failed 3\n");
-        return;
-    }
-    rc = console_add_connection(new_fd);
+    rcode_t rc = net_connection_add(host);
     if (SUCCESS != rc)
     {
-        close(listen_fd);
+        printf("net_connection_add failed\n");
         return;
     }
 
@@ -109,13 +67,7 @@ static void exit_cmd(char * cmd)
     if (status == CONSOLE_STOPPING) return;
 
     status = CONSOLE_STOPPING;
-    close(listen_fd);
-    int i;
-    for (i = NUM_FDS; i < nfds; i++)
-    {
-        if (fds[i].fd) close(fds[i].fd);
-    }
-    if (fds) free(fds);
+    net_thread_stop();
 }
 
 static void version_cmd(char * cmd)
@@ -126,7 +78,13 @@ static void version_cmd(char * cmd)
 static void status_cmd(char * cmd)
 {
     printf("App:\t\t%s\n", (status == CONSOLE_RUNNING) ? "RUNNING" : "STOPPED");
-    printf("Net:\t\t%s\n", (connection == CONNECTED) ? "ESTABILISHED" : "NOT ESTABILISHED");
+    char * result = NULL;
+    net_get_connection_status(&result);
+    if (NULL != result)
+    {
+        printf("%s\n", result);
+        free(result);
+    }
 }
 
 static void unknow_cmd(char * cmd)
@@ -165,39 +123,16 @@ static int is_cmd(char * cmd)
 
 static void console_msg_handle(char * msg)
 {
-    if (connection == DISCONNECTED)
-    {
-        printf("Connection not estabilished\n");
-        return;
-    }
-
-    message_t * message = (message_t *) malloc(sizeof(header_t) + strlen(msg)+1);
-    if (message == NULL)
+    rcode_t rc = net_message_send(msg);
+    if (SUCCESS != rc)
     {
         printf("Cannot send message\n");
-        return;
     }
-
-    memset(message, 0, sizeof(*message));
-    message->header.length = strlen(msg)+1;
-    memcpy(message->payload, msg, strlen(msg)+1);
-    int rc;
-    int i;
-    for (i = NUM_FDS; i < nfds; i++)
-    {
-        if (!fds[i].fd) continue;
-        rc = net_send_message(fds[i].fd, message);
-        if (rc != SUCCESS)
-        {
-            printf("Error sending message\n");
-        }
-    }
-    free(message);
 }
 
-static void incoming_message_handle(message_t * message)
+static void incoming_message_handle(char * message)
 {
-    printf("%s\n", message->payload);
+    printf("%s\n", message);
 }
 
 /* askii only */
@@ -240,56 +175,6 @@ static void signal_handler(int signo)
 void console_init()
 {
     console_welcome(NAME);
-    fds = (struct pollfd *) calloc(NUM_FDS, sizeof(struct pollfd));
-    if (!fds) return;
-
-    rcode_t rc = net_open_tcp_socket(&listen_fd);
-    if (rc != SUCCESS)
-    {
-        free(fds);
-        return;
-    }
-
-    rc = net_set_socket_nonblock(listen_fd);
-    if (rc != SUCCESS)
-    {
-        close(listen_fd);
-        free(fds);
-        return;
-    }
-
-    rc = net_set_socket_reuse(listen_fd);
-    if (rc != SUCCESS)
-    {
-        close(listen_fd);
-        free(fds);
-        return;
-    }
-
-    struct sockaddr addr;
-    rc = net_fill_in_addr(&addr, LISTEN_ADDR, LISTEN_PORT);
-    if (rc != SUCCESS)
-    {
-        close(listen_fd);
-        free(fds);
-        return;
-    }
-
-    rc = net_bind_socket(listen_fd, &addr);
-    if (rc != SUCCESS)
-    {
-        close(listen_fd);
-        free(fds);
-        return;
-    }
-
-    rc = net_listen_fd(listen_fd, 5);
-    if (rc != SUCCESS)
-    {
-        close(listen_fd);
-        free(fds);
-        return;
-    }
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
@@ -304,16 +189,12 @@ void console_init()
     sigaddset(&sset, SIGINT);
     sigprocmask(SIG_BLOCK, &sset, 0);
 
-    fds[STDIN_FD].fd = 0;
-    fds[STDIN_FD].events = POLLIN;
-
-    fds[LISTEN_FD].fd = listen_fd;
-    fds[LISTEN_FD].events = POLLIN;
-
-    nfds = NUM_FDS;
+    stdin_pollfd.fd = 0;
+    stdin_pollfd.events = POLLIN;
 
     status = CONSOLE_RUNNING;
-    connection = DISCONNECTED;
+
+    pthread_create(&net_tid, NULL, net_thread_routine, NULL);
 }
 
 void console_loop(void * cookie)
@@ -324,9 +205,10 @@ void console_loop(void * cookie)
 
     while (CONSOLE_RUNNING == status)
     {
-        rc = poll(fds, nfds, POLL_TIMEOUT);
+        rc = poll(&stdin_pollfd, 1, POLL_TIMEOUT);
         if (rc == 0) continue;
-        if (fds[STDIN_FD].revents & POLLIN)
+        if (rc < 0) return;
+        if (stdin_pollfd.revents & POLLIN)
         {
             memset(buf, 0, sizeof(buf));
             for (i = 0; i < sizeof(buf) && (10 != (buf[i] = getchar()));i++);
@@ -338,42 +220,9 @@ void console_loop(void * cookie)
             printf("> ");
             fflush(stdout);
         }
-        if (fds[LISTEN_FD].revents & POLLIN)
-        {
-            int new_fd;
-            rc = net_accept_connection(listen_fd, &new_fd);
-            if (rc != SUCCESS)
-            {
-                close(listen_fd);
-                free(fds);
-                return;
-            }
-            rc = console_add_connection(new_fd);
-            if (rc != SUCCESS)
-            {
-                close(listen_fd);
-                return;
-            }
-        }
-        for (i = NUM_FDS; i < nfds; i++)
-        {
-            if (fds[i].revents & POLLIN)
-            {
-                int rc;
-                message_t * message = NULL;
-                rc = net_recv_message(fds[i].fd, &message);
-                if (rc != SUCCESS)
-                {
-                    if (message) free(message);
-                    continue;
-                }
-                incoming_message_handle(message);
-                printf("> ");
-                fflush(stdout);
-                if (message) free(message);
-            }
-        }
-        if (rc < 0) return;
+        rc = net_get_message(buf);
+        if (rc != SUCCESS) continue;
+        incoming_message_handle(buf);
     }
     return;
 }

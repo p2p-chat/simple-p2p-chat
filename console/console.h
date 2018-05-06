@@ -12,11 +12,9 @@
 #include "../net/net.h"
 
 #define NAME           "Crypto P2P Chat"
-#define VERSION        "0.0.0.3"
+#define VERSION        "0.0.0.4"
 #define POLL_TIMEOUT    1000
 #define INPUT_MAX_LEN   1024
-#define LISTEN_ADDR     "0.0.0.0"
-#define LISTEN_PORT     33000
 
 typedef enum
 {
@@ -29,13 +27,6 @@ typedef enum
     CONNECTED,
     DISCONNECTED
 } connection_status_t;
-
-enum pollfds
-{
-	STDIN_FD,
-	LISTEN_FD,
-	NUM_FDS
-};
 
 void console_init();
 void console_loop();

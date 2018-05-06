@@ -1,6 +1,7 @@
 #ifndef NET_H
 #define NET_H
 
+#define _GNU_SOURCE
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -13,14 +14,26 @@
 #include <string.h>
 #include <time.h>
 #include <fcntl.h>
+#include <poll.h>
 
 #include "message.h"
+
+#define LISTEN_ADDR     "0.0.0.0"
+#define LISTEN_PORT     33000
 
 typedef enum
 {
     SUCCESS,
-    FAILED
+    FAILED,
+    CRITICAL
 } rcode_t;
+
+rcode_t net_connection_add(char * host);
+rcode_t net_get_message(char * message);
+rcode_t net_message_send(char * message);
+rcode_t net_get_connection_status(char ** status);
+rcode_t net_thread_stop();
+void * net_thread_routine(void * cookie);
 
 rcode_t net_open_tcp_socket(int32_t * fd_out);
 rcode_t net_open_udp_socket(int32_t * fd_out);

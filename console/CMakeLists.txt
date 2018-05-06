@@ -4,4 +4,4 @@ add_definitions(-Wall)
 
 add_library(console console.c)
 
-target_link_libraries(console net)
+target_link_libraries(console net pthread)
