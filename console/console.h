@@ -6,6 +6,8 @@
 #include <string.h>
 #include <poll.h>
 #include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "../net/net.h"
 #include "../crypto/rsa.h"
