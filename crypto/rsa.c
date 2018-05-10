@@ -142,29 +142,33 @@ void rsa_gen_keys(rsa_key_t *pub, rsa_key_t *priv)
 
 }
 
-long long *rsa_encrypt(char *message, const unsigned long message_size, 
-                     const rsa_key_t *pub)
+int rsa_encrypt(char *message,
+                const unsigned long message_size,
+                long long **message_out,
+                const rsa_key_t *pub)
 {
   long long *encrypted = malloc(sizeof(long long)*message_size);
   if(encrypted == NULL){
     printf("Error: Heap allocation failed.\n");
-    return NULL;
+    return -1;
   }
   long long i = 0;
   for(i=0; i < message_size; i++){
     encrypted[i] = rsa_modExp(message[i], pub->exponent, pub->modulus);
   }
-  return encrypted;
+  *message_out = encrypted;
+  return 1;
 }
 
-char *rsa_decrypt(const long long *message, 
-                  const unsigned long message_size, 
-                  const rsa_key_t *priv)
+int rsa_decrypt(const long long *message_in,
+                const unsigned long message_size,
+                char **message_out,
+                const rsa_key_t *priv)
 {
   if(message_size % sizeof(long long) != 0){
     fprintf(stderr,
      "Error: message_size is not divisible by %d, so cannot be output of rsa_encrypt\n", (int)sizeof(long long));
-     return NULL;
+     return -1;
   }
   // We allocate space to do the decryption (temp) and space for the output as a char array
   // (decrypted)
@@ -173,20 +177,21 @@ char *rsa_decrypt(const long long *message,
   if((decrypted == NULL) || (temp == NULL)){
     fprintf(stderr,
      "Error: Heap allocation failed.\n");
-    return NULL;
+    return -1;
   }
   // Now we go through each 8-byte chunk and decrypt it.
   long long i = 0;
   for(i=0; i < message_size/8; i++){
-    temp[i] = rsa_modExp(message[i], priv->exponent, priv->modulus);
+    temp[i] = rsa_modExp(message_in[i], priv->exponent, priv->modulus);
   }
   // The result should be a number in the char range, which gives back the original byte.
   // We put that into decrypted, then return.
   for(i=0; i < message_size/8; i++){
     decrypted[i] = temp[i];
   }
+  *message_out = decrypted;
   free(temp);
-  return decrypted;
+  return 1;
 }
 
 
